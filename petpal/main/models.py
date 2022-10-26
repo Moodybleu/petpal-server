@@ -37,4 +37,4 @@ class Appointments(models.Model):
     pass
 
     def __str__(self):
-    return self.pet
+        return self.pet
