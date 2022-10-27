@@ -28,6 +28,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
     path('pet/', include(router.urls)),
-    path('user/', include(router.urls)),
-    path('pets/<int:pk>/edit', include(router.urls)),
+    # path('user/', include(router.urls)),
+    # path('pet/<int:pk>/edit/', include(router.urls)),
+    # path('pet/<int:pk>/health/'),include(router.urls),
+    # path('pet/<int:pk>/daily/'), include(router.urls),
+    # path('pet/<int:pk>/appointments/'), include(router.urls),
+    # path('pet/<int:pk>/diary/'), include(router.urls),
 ]
