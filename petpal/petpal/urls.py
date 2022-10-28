@@ -17,15 +17,24 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 from main import views
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 router = routers.DefaultRouter()
 router.register(r'user', views.UserView, 'user')
 router.register(r'pet', views.PetView, 'pet')
+router.register(r'health', views.HealthView, 'health')
+router.register(r'daily', views.HealthView, 'daily')
+router.register(r'appointments', views.HealthView, 'health')
 
 urlpatterns = [
     path('', views.home, name = 'home'),
-    path('accounts/', include('django.contrib.auth.urls')),
     path('admin/', admin.site.urls),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/', include(router.urls)),
     path('pet/', include(router.urls)),
     # path('user/', include(router.urls)),
