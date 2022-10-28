@@ -60,18 +60,19 @@ class User(AbstractBaseUser,PermissionsMixin):
 
 
 class Pet(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100) 
     breed = models.CharField(max_length=100) 
     date_of_birth = models.DateField(null=True)
     nickname = models.CharField(max_length=100) 
     catchphrase = models.CharField(max_length=250) 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
 
 
 class Health(models.Model):
+    pet = models.ForeignKey(Pet, on_delete=models.CASCADE, blank=True, null=True)
     visit_date = models.DateField(null=True)
     visit_type = models.CharField(max_length=250,blank=True, null=True)
     pet_weight = models.CharField(max_length=25, blank=True, null=True)
@@ -79,33 +80,35 @@ class Health(models.Model):
     medicine = models.CharField(max_length=500, blank=True, null=True)
     other =models.TextField(blank=True, null=True)
     tx_plan = models.TextField(blank=True, null=True)
-    pet = models.ForeignKey(Pet, on_delete=models.CASCADE, blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return self.notes
 
 class Daily(models.Model):
+    pet = models.ForeignKey(Pet, on_delete=models.CASCADE, blank=True, null=True)
     food_schedule = models.TimeField(auto_now=False, auto_now_add=False, blank=True, null=True)
     walk_schedule = models.TimeField(auto_now=False, auto_now_add=False, blank=True, null=True)
     potty_trips = models.TimeField(auto_now =False, auto_now_add=False, blank=True, null=True)
     medicine_schedule = models.TimeField(auto_now=False, auto_now_add=False, blank=True, null=True)
-    pet = models.ForeignKey(Pet, on_delete=models.CASCADE, blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return self.notes
     
 class Appointments(models.Model):
+    pet = models.ForeignKey(Pet, on_delete=models.CASCADE, blank=True, null=True)
     grooming =  models.DateField(null=True, blank=True)
     play_date =  models.DateField(null=True,blank=True)
     cuddles =  models.DateField(null=True,blank=True)
-    pet = models.ForeignKey(Pet, on_delete=models.CASCADE, blank=True, null=True)
+    notes =models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return self.notes
 
    
-class Pet_Diary(models.Model):
-    pet = models.ForeignKey(Pet, on_delete=models.CASCADE, blank=True, null=True)
-    health = models.ForeignKey(Health, on_delete=models.CASCADE, blank=True, null=True)
-    daily = models.ForeignKey(Daily, on_delete = models.CASCADE,blank=True, null=True)
-    appointments = models.ForeignKey(Appointments, on_delete = models.CASCADE)
+# class Pet_Diary(models.Model):
+#     pet = models.ForeignKey(Pet, on_delete=models.CASCADE, blank=True, null=True)
+#     health = models.ForeignKey(Health, on_delete=models.CASCADE, blank=True, null=True)
+#     daily = models.ForeignKey(Daily, on_delete = models.CASCADE,blank=True, null=True)
+#     appointments = models.ForeignKey(Appointments, on_delete = models.CASCADE)

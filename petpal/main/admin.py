@@ -1,6 +1,6 @@
 
 from django.contrib import admin
-from .models import Appointments, Daily, Pet_Diary, User, Health, Pet
+from .models import Appointments, Daily, User, Health, Pet
 
 # from django import forms
 # from django.contrib.auth.models import Group
@@ -10,7 +10,6 @@ from .models import Appointments, Daily, Pet_Diary, User, Health, Pet
 # Register your models here.
 admin.site.register(User)
 admin.site.register(Pet)
-admin.site.register(Pet_Diary)
 admin.site.register(Health)
 admin.site.register(Daily)
 admin.site.register(Appointments)

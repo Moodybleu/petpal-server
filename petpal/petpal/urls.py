@@ -28,6 +28,7 @@ router.register(r'pet', views.PetView, 'pet')
 router.register(r'health', views.HealthView, 'health')
 router.register(r'daily', views.DailyView, 'daily')
 router.register(r'appointments', views.AppointmentsView, 'health')
+# router.register(r'pet_diary', views.Pet_DiaryView, 'pet_diary')
 
 urlpatterns = [
     path('', views.home, name = 'home'),
@@ -41,7 +42,9 @@ urlpatterns = [
     path('pet/', include(router.urls)),
     path('health/', include(router.urls)),
     path('daily/', include(router.urls)),
-    path('appointments/', include(router.urls))
+    path('appointments/', include(router.urls)),
+
+
 
     # path('pet/<int:pk>/edit/', include(router.urls)),
     # path('pet/<int:pk>/health/'),include(router.urls),

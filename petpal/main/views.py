@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from .serializers import UserSerializer, PetSerializer, HealthSerializer, DailySerializer, AppointmentsSerializer
 
 from .models import Appointments, User, Pet, Health, Daily, Appointments
+from main import serializers
 
 
 
@@ -31,6 +32,8 @@ class DailyView(viewsets.ModelViewSet):
 class AppointmentsView(viewsets.ModelViewSet):
     serializer_class = AppointmentsSerializer
     queryset = Appointments.objects.all()
+
+
 
 
 
