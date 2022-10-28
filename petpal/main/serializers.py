@@ -17,7 +17,6 @@ class PetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pet
         fields = "__all__"
-        # fields = ('id', 'name', 'breed', 'date_of_birth', 'nickname', 'catchphrase','user')
 
 class UserSerializer(serializers.ModelSerializer):
     pets =PetSerializer(many=True, required =False)
@@ -31,16 +30,14 @@ class HealthSerializer(serializers.ModelSerializer):
     class Meta:
         model = Health
         fields = "__all__"
-        # fields = ("id", "visit_date", "visit_type", "pet_weight","shots", "medicine", "other","tx_plan", "pet")
 
 class DailySerializer(serializers.ModelSerializer):
     class Meta:
         model = Daily
         fields = "__all__"
-        # fields = ("id","food_schedule", "walk_schedule", "potty_trips", "medicine_schedule", "pet")
+
 
 class AppointmentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointments
         fields = "__all__"
-        # fields = ("id", "grooming", "play_date", "cuddles", "pet")

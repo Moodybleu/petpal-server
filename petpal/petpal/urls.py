@@ -49,3 +49,4 @@ urlpatterns = [
     # path('pet/<int:pk>/appointments/'), include(router.urls),
     # path('pet/<int:pk>/diary/'), include(router.urls),
 ]
+
