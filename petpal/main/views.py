@@ -4,7 +4,7 @@ from django.http import HttpResponse
 
 from .serializers import UserSerializer, PetSerializer, HealthSerializer, DailySerializer, AppointmentsSerializer
 
-from .models import Appointments, User, Pet
+from .models import Appointments, User, Pet, Health, Daily, Appointments
 
 
 
