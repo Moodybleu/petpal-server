@@ -39,10 +39,10 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('user/', include(router.urls)),
 
-    path('pet/', include(router.urls)),
-    path('health/', include(router.urls)),
-    path('daily/', include(router.urls)),
-    path('appointments/', include(router.urls)),
+    # path('pet/', include(router.urls)),
+    # path('health/', include(router.urls)),
+    # path('daily/', include(router.urls)),
+    # path('appointments/', include(router.urls)),
 
 
 

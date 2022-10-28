@@ -19,7 +19,7 @@ class PetSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class UserSerializer(serializers.ModelSerializer):
-    pets =PetSerializer(many=True, required =False)
+    # pets =PetSerializer(many=True, required =False)
     def validate_password(self, value: str) -> str:
         return make_password(value)
     class Meta:
