@@ -4,3 +4,5 @@ __pycache__/
 *.pyc
 petpal/db.sqlite3
 petpal/media/
+
+.git.broken-*
