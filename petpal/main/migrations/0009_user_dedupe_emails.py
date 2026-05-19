@@ -1,4 +1,4 @@
-from django.db import migrations, models
+from django.db import migrations
 
 
 def dedupe_user_emails(apps, schema_editor):
@@ -15,6 +15,8 @@ def dedupe_user_emails(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+    # PostgreSQL cannot ALTER the same table in the same transaction as row deletes.
+    atomic = False
 
     dependencies = [
         ('main', '0008_user_password_length'),
@@ -22,9 +24,4 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(dedupe_user_emails, migrations.RunPython.noop),
-        migrations.AlterField(
-            model_name='user',
-            name='email',
-            field=models.CharField(max_length=254, unique=True),
-        ),
     ]
