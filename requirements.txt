@@ -9,3 +9,4 @@ Pillow==10.4.0
 
 # Optional — only needed for PostgreSQL in production:
 # psycopg2==2.9.5
+gunicorn==21.2.0
