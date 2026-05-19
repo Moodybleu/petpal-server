@@ -1,0 +1,30 @@
+from django.db import migrations, models
+
+
+def dedupe_user_emails(apps, schema_editor):
+    User = apps.get_model('main', 'User')
+    seen = set()
+    for user in User.objects.order_by('id'):
+        key = (user.email or '').strip().lower()
+        if not key:
+            continue
+        if key in seen:
+            user.delete()
+        else:
+            seen.add(key)
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('main', '0008_user_password_length'),
+    ]
+
+    operations = [
+        migrations.RunPython(dedupe_user_emails, migrations.RunPython.noop),
+        migrations.AlterField(
+            model_name='user',
+            name='email',
+            field=models.CharField(max_length=254, unique=True),
+        ),
+    ]

@@ -92,17 +92,17 @@ class UserView(viewsets.ModelViewSet):
             )
 
         if '@' in login_id:
-            user = User.objects.filter(email__iexact=login_id).first()
+            candidates = User.objects.filter(email__iexact=login_id)
         else:
-            user = User.objects.filter(name__iexact=login_id).first()
+            candidates = User.objects.filter(name__iexact=login_id)
+
+        user = None
+        for candidate in candidates:
+            if check_password(password, candidate.password):
+                user = candidate
+                break
 
         if not user:
-            return Response(
-                {'msg': 'Invalid username or password.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if not check_password(password, user.password):
             return Response(
                 {'msg': 'Invalid username or password.'},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -171,8 +171,8 @@ class UserView(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        user = User.objects.filter(email__iexact=email).first()
-        if not user:
+        users = list(User.objects.filter(email__iexact=email))
+        if not users:
             return Response(
                 {
                     'msg': (
@@ -183,8 +183,10 @@ class UserView(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        user.password = make_password(new_password)
-        user.save(update_fields=['password'])
+        hashed = make_password(new_password)
+        for user in users:
+            user.password = hashed
+            user.save(update_fields=['password'])
         if is_email_configured():
             _send_user_email(send_password_reset_email, user)
 

@@ -56,6 +56,14 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'name': 'Username is required.'})
         return attrs
 
+    def validate_email(self, value: str) -> str:
+        email = value.strip()
+        if User.objects.filter(email__iexact=email).exists():
+            raise serializers.ValidationError(
+                'An account with this email already exists. Log in or use Reset password.'
+            )
+        return email
+
     def validate_password(self, value: str) -> str:
         return make_password(value)
 
