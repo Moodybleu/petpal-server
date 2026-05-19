@@ -2,7 +2,6 @@ import secrets
 from datetime import date
 
 from django.contrib.auth.hashers import check_password, make_password
-from django.core.mail import BadHeaderError
 from django.http import HttpResponse
 from rest_framework import status, viewsets
 from rest_framework.exceptions import PermissionDenied
@@ -12,7 +11,13 @@ from rest_framework.response import Response
 
 from .auth_utils import create_access_token, get_user_id_from_request
 from .diary_utils import build_entries_by_date
-from .email_utils import send_login_reminder_email, send_password_reset_email
+from .email_utils import (
+    EmailDeliveryError,
+    EmailNotConfiguredError,
+    is_email_configured,
+    send_login_reminder_email,
+    send_password_reset_email,
+)
 from .models import Appointments, Daily, Health, Pet, User
 from .serializers import (
     AppointmentsSerializer,
@@ -27,23 +32,29 @@ def home(request):
     return HttpResponse('Pet Pal Home Page')
 
 
+EMAIL_NOT_CONFIGURED_MSG = (
+    'Pet Pal cannot send email from the live server yet. '
+    'Use the Reset password tab to choose a new password on this page instead, '
+    'or ask the site owner to add RESEND_API_KEY or EMAIL_HOST on Render.'
+)
+
+
 def _send_user_email(send_callable, user):
     try:
         send_callable(user)
-    except BadHeaderError:
+    except EmailNotConfiguredError:
         return Response(
-            {'msg': 'Could not send email. Try again later.'},
+            {'msg': EMAIL_NOT_CONFIGURED_MSG},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+    except EmailDeliveryError:
+        return Response(
+            {'msg': 'Could not send email. Check your address and try again later.'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
     except Exception:
         return Response(
-            {
-                'msg': (
-                    'Email is not configured on the server yet. '
-                    'Ask your instructor to set EMAIL_HOST on Render, or run locally '
-                    'and check the Django terminal for the message.'
-                ),
-            },
+            {'msg': 'Could not send email. Try again later.'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
     return None
@@ -114,15 +125,20 @@ class UserView(viewsets.ModelViewSet):
         )
 
         if user:
+            if not is_email_configured():
+                return Response(
+                    {'msg': EMAIL_NOT_CONFIGURED_MSG},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
             temporary_password = secrets.token_urlsafe(9)
-            user.password = make_password(temporary_password)
-            user.save(update_fields=['password'])
             email_error = _send_user_email(
                 lambda u: send_login_reminder_email(u, temporary_password),
                 user,
             )
             if email_error:
                 return email_error
+            user.password = make_password(temporary_password)
+            user.save(update_fields=['password'])
 
         return Response({'msg': success_msg})
 
@@ -162,9 +178,8 @@ class UserView(viewsets.ModelViewSet):
         if user:
             user.password = make_password(new_password)
             user.save(update_fields=['password'])
-            email_error = _send_user_email(send_password_reset_email, user)
-            if email_error:
-                return email_error
+            if is_email_configured():
+                _send_user_email(send_password_reset_email, user)
 
         return Response({'msg': success_msg})
 

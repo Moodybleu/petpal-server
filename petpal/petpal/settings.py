@@ -87,7 +87,12 @@ REST_FRAMEWORK = {
 
 PETPAL_SITE_NAME = 'Pet Pal'
 
-if os.environ.get('EMAIL_HOST'):
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
+
+if RESEND_API_KEY:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')
+elif os.environ.get('EMAIL_HOST'):
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = os.environ.get('EMAIL_HOST')
     EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
