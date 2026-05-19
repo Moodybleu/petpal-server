@@ -83,7 +83,7 @@ class UserView(viewsets.ModelViewSet):
             or request.data.get('username', '').strip()
             or request.data.get('email', '').strip()
         )
-        password = request.data.get('password', '')
+        password = request.data.get('password', '').strip()
 
         if not login_id or not password:
             return Response(
@@ -172,18 +172,25 @@ class UserView(viewsets.ModelViewSet):
             )
 
         user = User.objects.filter(email__iexact=email).first()
-        success_msg = (
-            'If that email is registered with Pet Pal, your password has been reset. '
-            'You can log in with your new password.'
-        )
+        if not user:
+            return Response(
+                {
+                    'msg': (
+                        'No account found with that email. '
+                        'Sign up first, then log in or reset your password.'
+                    )
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        if user:
-            user.password = make_password(new_password)
-            user.save(update_fields=['password'])
-            if is_email_configured():
-                _send_user_email(send_password_reset_email, user)
+        user.password = make_password(new_password)
+        user.save(update_fields=['password'])
+        if is_email_configured():
+            _send_user_email(send_password_reset_email, user)
 
-        return Response({'msg': success_msg})
+        return Response({
+            'msg': 'Password updated. Log in with your new password below.',
+        })
 
     @action(detail=False, methods=['post'], url_path='seed-pets-if-empty')
     def seed_pets_if_empty(self, request):
