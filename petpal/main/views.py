@@ -1,3 +1,4 @@
+import os
 import secrets
 from datetime import date
 
@@ -19,6 +20,7 @@ from .email_utils import (
     send_password_reset_email,
 )
 from .models import Appointments, Daily, Health, Pet, User
+from .pet_backup import DEFAULT_OWNER_EMAIL, PET_BACKUP
 from .serializers import (
     AppointmentsSerializer,
     DailySerializer,
@@ -182,6 +184,35 @@ class UserView(viewsets.ModelViewSet):
                 _send_user_email(send_password_reset_email, user)
 
         return Response({'msg': success_msg})
+
+    @action(detail=False, methods=['post'], url_path='seed-pets-if-empty')
+    def seed_pets_if_empty(self, request):
+        """One-time recovery when Render wipes SQLite (only if no pets exist yet)."""
+        if Pet.objects.exists():
+            return Response(
+                {'msg': 'Pets already exist; seed skipped.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        owner_email = os.environ.get('PETPAL_OWNER_EMAIL', DEFAULT_OWNER_EMAIL).strip()
+        owner = User.objects.filter(email__iexact=owner_email).first()
+        if not owner:
+            return Response(
+                {
+                    'msg': (
+                        f'No account for {owner_email} yet. '
+                        'Sign up on the live site, then try again.'
+                    )
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        created = []
+        for data in PET_BACKUP:
+            pet = Pet.objects.create(owner=owner, **data)
+            created.append({'id': pet.id, 'name': pet.name})
+
+        return Response({'msg': f'Restored {len(created)} pet(s).', 'pets': created})
 
 
 class PetView(viewsets.ModelViewSet):
