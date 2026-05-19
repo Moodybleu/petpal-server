@@ -1,7 +1,7 @@
 from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve as media_serve
 from rest_framework import routers
 
 from main import views
@@ -21,4 +21,11 @@ urlpatterns = [
     path('user/', include(router.urls)),
 ]
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# static() only registers media routes when DEBUG=True; serve explicitly for production.
+urlpatterns += [
+    re_path(
+        r'^media/(?P<path>.*)$',
+        media_serve,
+        {'document_root': settings.MEDIA_ROOT},
+    ),
+]

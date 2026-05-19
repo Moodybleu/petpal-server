@@ -27,9 +27,13 @@ class PetSerializer(serializers.ModelSerializer):
         if not obj.photo:
             return None
         try:
-            return obj.photo.url
+            url = obj.photo.url
         except (ValueError, AttributeError):
             return None
+        request = self.context.get('request')
+        if request is not None:
+            return request.build_absolute_uri(url)
+        return url
 
 
 class UserSerializer(serializers.ModelSerializer):
