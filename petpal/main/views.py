@@ -3,11 +3,12 @@ from datetime import date
 from django.contrib.auth.hashers import check_password
 from django.http import HttpResponse
 from rest_framework import status, viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 
-from .auth_utils import create_access_token
+from .auth_utils import create_access_token, get_user_id_from_request
 from .diary_utils import build_entries_by_date
 from .models import Appointments, Daily, Health, Pet, User
 from .serializers import (
@@ -77,6 +78,18 @@ class PetView(viewsets.ModelViewSet):
     serializer_class = PetSerializer
     queryset = Pet.objects.all()
     parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_queryset(self):
+        user_id = get_user_id_from_request(self.request)
+        if not user_id:
+            return Pet.objects.none()
+        return Pet.objects.filter(owner_id=user_id)
+
+    def perform_create(self, serializer):
+        user_id = get_user_id_from_request(self.request)
+        if not user_id:
+            raise PermissionDenied('Login required to add a pet.')
+        serializer.save(owner_id=user_id)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

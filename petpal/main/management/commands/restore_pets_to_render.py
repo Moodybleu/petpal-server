@@ -1,4 +1,8 @@
-"""Copy pets from local SQLite to the hosted Render API (one-time recovery)."""
+"""Copy pets from local SQLite to the hosted Render API (one-time recovery).
+
+Note: restored pets are not linked to a login. Prefer adding pets while signed in
+so they stay on your account after this app update.
+"""
 
 import json
 from urllib.error import HTTPError, URLError

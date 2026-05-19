@@ -11,6 +11,13 @@ class User(models.Model):
 
 
 class Pet(models.Model):
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='pets',
+        null=True,
+        blank=True,
+    )
     name = models.CharField(max_length=50)
     breed = models.CharField(max_length=50)
     age = models.CharField(max_length=50)
