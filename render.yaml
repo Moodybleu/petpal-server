@@ -3,8 +3,8 @@ services:
     name: petpal-server
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt && cd petpal && python manage.py migrate
-    startCommand: cd petpal && gunicorn petpal.wsgi:application
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd petpal && python manage.py migrate && python manage.py seed_pets_if_empty && gunicorn petpal.wsgi:application
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.0"
@@ -12,3 +12,5 @@ services:
         value: "False"
       - key: SECRET_KEY
         generateValue: true
+      - key: PETPAL_OWNER_EMAIL
+        value: meganbenn27@icloud.com
