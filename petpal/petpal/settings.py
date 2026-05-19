@@ -1,9 +1,10 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'dev-only-change-me-before-production'
-DEBUG = True
+SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-only-change-me-before-production')
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
@@ -75,6 +76,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'https://moodybleu.github.io',
 ]
 
 REST_FRAMEWORK = {
