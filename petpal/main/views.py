@@ -1,6 +1,8 @@
+import secrets
 from datetime import date
 
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password, make_password
+from django.core.mail import BadHeaderError
 from django.http import HttpResponse
 from rest_framework import status, viewsets
 from rest_framework.exceptions import PermissionDenied
@@ -10,6 +12,7 @@ from rest_framework.response import Response
 
 from .auth_utils import create_access_token, get_user_id_from_request
 from .diary_utils import build_entries_by_date
+from .email_utils import send_login_reminder_email, send_password_reset_email
 from .models import Appointments, Daily, Health, Pet, User
 from .serializers import (
     AppointmentsSerializer,
@@ -22,6 +25,28 @@ from .serializers import (
 
 def home(request):
     return HttpResponse('Pet Pal Home Page')
+
+
+def _send_user_email(send_callable, user):
+    try:
+        send_callable(user)
+    except BadHeaderError:
+        return Response(
+            {'msg': 'Could not send email. Try again later.'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+    except Exception:
+        return Response(
+            {
+                'msg': (
+                    'Email is not configured on the server yet. '
+                    'Ask your instructor to set EMAIL_HOST on Render, or run locally '
+                    'and check the Django terminal for the message.'
+                ),
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+    return None
 
 
 class UserView(viewsets.ModelViewSet):
@@ -72,6 +97,76 @@ class UserView(viewsets.ModelViewSet):
 
         token = create_access_token(user.id)
         return Response({'token': token})
+
+    @action(detail=False, methods=['post'], url_path='remind-login')
+    def remind_login(self, request):
+        email = request.data.get('email', '').strip()
+        if not email:
+            return Response(
+                {'msg': 'Please enter the email you used when you signed up.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = User.objects.filter(email__iexact=email).first()
+        success_msg = (
+            'If that email is registered with Pet Pal, we sent your login details. '
+            'Check your inbox (and spam folder).'
+        )
+
+        if user:
+            temporary_password = secrets.token_urlsafe(9)
+            user.password = make_password(temporary_password)
+            user.save(update_fields=['password'])
+            email_error = _send_user_email(
+                lambda u: send_login_reminder_email(u, temporary_password),
+                user,
+            )
+            if email_error:
+                return email_error
+
+        return Response({'msg': success_msg})
+
+    @action(detail=False, methods=['post'], url_path='reset-password')
+    def reset_password(self, request):
+        email = request.data.get('email', '').strip()
+        new_password = request.data.get('new_password', '')
+        confirm_password = request.data.get('confirm_password', '')
+
+        if not email:
+            return Response(
+                {'msg': 'Please enter the email you used when you signed up.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not new_password:
+            return Response(
+                {'msg': 'Please enter a new password.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if new_password != confirm_password:
+            return Response(
+                {'msg': 'Passwords do not match.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if len(new_password) < 6:
+            return Response(
+                {'msg': 'Password must be at least 6 characters.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = User.objects.filter(email__iexact=email).first()
+        success_msg = (
+            'If that email is registered with Pet Pal, your password has been reset. '
+            'You can log in with your new password.'
+        )
+
+        if user:
+            user.password = make_password(new_password)
+            user.save(update_fields=['password'])
+            email_error = _send_user_email(send_password_reset_email, user)
+            if email_error:
+                return email_error
+
+        return Response({'msg': success_msg})
 
 
 class PetView(viewsets.ModelViewSet):
