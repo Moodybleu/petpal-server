@@ -1,44 +1,74 @@
-from rest_framework import serializers
-from .models import Appointments, Health, Pet, User, Daily
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth import get_user_model
+from rest_framework import serializers
 
-def validate_password(self, value: str) -> str:
-    """
-    Hash value passed by user.
-    :param value: password of a user
-    :return: a hashed version of the password
-    """
-    return make_password(value)
+from .models import Appointments, Daily, Health, Pet, User
 
-User = get_user_model()
 
 class PetSerializer(serializers.ModelSerializer):
+    photo_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Pet
-        fields = "__all__"
+        fields = [
+            'id',
+            'name',
+            'breed',
+            'age',
+            'nickname',
+            'catchphrase',
+            'photo',
+            'photo_url',
+        ]
+        extra_kwargs = {
+            'photo': {'write_only': True, 'required': False, 'allow_null': True},
+        }
+
+    def get_photo_url(self, obj):
+        if not obj.photo:
+            return None
+        try:
+            return obj.photo.url
+        except (ValueError, AttributeError):
+            return None
+
 
 class UserSerializer(serializers.ModelSerializer):
-    # pets =PetSerializer(many=True, required =False)
-    def validate_password(self, value: str) -> str:
-        return make_password(value)
+    username = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    password = serializers.CharField(write_only=True)
+
     class Meta:
         model = User
-        fields = "__all__"
+        fields = ['id', 'name', 'email', 'password', 'username']
+        extra_kwargs = {
+            'name': {'required': False, 'allow_blank': True},
+            'password': {'write_only': True},
+        }
+
+    def validate(self, attrs):
+        username = attrs.pop('username', None)
+        if username and not attrs.get('name'):
+            attrs['name'] = username
+        if not attrs.get('name'):
+            raise serializers.ValidationError({'name': 'Username is required.'})
+        return attrs
+
+    def validate_password(self, value: str) -> str:
+        return make_password(value)
+
 
 class HealthSerializer(serializers.ModelSerializer):
     class Meta:
         model = Health
-        fields = "__all__"
+        fields = '__all__'
+
 
 class DailySerializer(serializers.ModelSerializer):
     class Meta:
         model = Daily
-        fields = "__all__"
+        fields = '__all__'
 
 
 class AppointmentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointments
-        fields = "__all__"
-
+        fields = '__all__'

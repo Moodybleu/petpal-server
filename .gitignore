@@ -1,0 +1,6 @@
+.env
+venv/
+__pycache__/
+*.pyc
+petpal/db.sqlite3
+petpal/media/
