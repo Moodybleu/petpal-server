@@ -4,11 +4,20 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def _normalize_cloudinary_url():
+    raw = os.environ.get('CLOUDINARY_URL', '').strip()
+    if len(raw) >= 2 and raw[0] == raw[-1] and raw[0] in '"\'':
+        raw = raw[1:-1].strip()
+    return raw
+
+
 def _cloudinary_configured():
-    if os.environ.get('CLOUDINARY_URL'):
-        return True
+    cloudinary_url = _normalize_cloudinary_url()
+    if cloudinary_url:
+        return cloudinary_url.startswith('cloudinary://')
+
     return all(
-        os.environ.get(key)
+        os.environ.get(key, '').strip()
         for key in ('CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET')
     )
 
