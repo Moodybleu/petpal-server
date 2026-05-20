@@ -8,6 +8,9 @@ def _normalize_cloudinary_url():
     raw = os.environ.get('CLOUDINARY_URL', '').strip()
     if len(raw) >= 2 and raw[0] == raw[-1] and raw[0] in '"\'':
         raw = raw[1:-1].strip()
+    # Render key/value fields: paste only the URL, not "CLOUDINARY_URL=..."
+    if raw.upper().startswith('CLOUDINARY_URL='):
+        raw = raw.split('=', 1)[1].strip()
     return raw
 
 
