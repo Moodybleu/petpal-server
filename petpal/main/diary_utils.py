@@ -1,5 +1,13 @@
 from datetime import date
 
+from .models import Appointments, Daily, Health
+
+DIARY_ENTRY_RELATIONS = {
+    'daily': ('daily_logs', Daily),
+    'vet_visit': ('health_records', Health),
+    'appointment': ('appointments', Appointments),
+}
+
 
 def _field(label, value):
     if value is None or value == '':

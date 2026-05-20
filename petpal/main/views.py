@@ -11,7 +11,7 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 
 from .auth_utils import create_access_token, get_user_id_from_request
-from .diary_utils import build_entries_by_date
+from .diary_utils import DIARY_ENTRY_RELATIONS, build_entries_by_date
 from .email_utils import (
     EmailDeliveryError,
     EmailNotConfiguredError,
@@ -264,6 +264,32 @@ class PetView(viewsets.ModelViewSet):
             'month': month,
             'entries_by_date': entries_by_date,
         })
+
+    @action(
+        detail=True,
+        methods=['delete'],
+        url_path=r'diary/(?P<entry_type>[^/.]+)/(?P<entry_id>[0-9]+)',
+    )
+    def delete_diary_entry(self, request, pk=None, entry_type=None, entry_id=None):
+        pet = self.get_object()
+        relation = DIARY_ENTRY_RELATIONS.get(entry_type)
+        if not relation:
+            return Response(
+                {'detail': 'Unknown entry type.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        related_name, _model = relation
+        try:
+            record = getattr(pet, related_name).get(pk=entry_id)
+        except _model.DoesNotExist:
+            return Response(
+                {'detail': 'Entry not found for this pet.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        record.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class PetFilteredViewSet(viewsets.ModelViewSet):
