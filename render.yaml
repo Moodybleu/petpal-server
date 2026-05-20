@@ -14,3 +14,6 @@ services:
         generateValue: true
       - key: PETPAL_OWNER_EMAIL
         value: meganbenn27@icloud.com
+      # Pet photos: add CLOUDINARY_URL in the Render dashboard (free tier).
+      # Copy from Cloudinary Console → API Keys → "API environment variable".
+      # Without this, uploads are lost on every redeploy.

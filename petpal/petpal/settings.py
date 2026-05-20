@@ -3,6 +3,18 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+def _cloudinary_configured():
+    if os.environ.get('CLOUDINARY_URL'):
+        return True
+    return all(
+        os.environ.get(key)
+        for key in ('CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET')
+    )
+
+
+USE_CLOUDINARY = _cloudinary_configured()
+
 SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-only-change-me-before-production')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = [
@@ -20,6 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+] + (['cloudinary_storage', 'cloudinary'] if USE_CLOUDINARY else []) + [
     'main',
 ]
 
@@ -84,6 +97,16 @@ STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+if USE_CLOUDINARY:
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    # CLOUDINARY_URL env var is read automatically when set.
+    if not os.environ.get('CLOUDINARY_URL'):
+        CLOUDINARY_STORAGE = {
+            'CLOUD_NAME': os.environ['CLOUDINARY_CLOUD_NAME'],
+            'API_KEY': os.environ['CLOUDINARY_API_KEY'],
+            'API_SECRET': os.environ['CLOUDINARY_API_SECRET'],
+        }
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
